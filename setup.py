@@ -71,6 +71,10 @@ class config_pcap(config.config):
                     
                     # Search for subdirectories in the pcap.h parent 
                     # folder, targetting libpcap/winpcap libraries
+                    # libpcap.a - archive of compiled libpcap code
+                    # libpcap.so - shared object library
+                    # libpcap.dylib - libpcap dynamic library
+                    # wpcap.lib - WinPcap library
                     for sd in ('lib', 'lib64', ''):
                         for lib in (('pcap', 'libpcap.a'),
                                     ('pcap', 'libpcap.so'),
@@ -119,7 +123,7 @@ pcap = Extension(name='pcap',
 pcap_cmds = { 'config':config_pcap, 'clean':clean_pcap }
 
 setup(name='pcap',
-      version='1.1',
+      version='1.1s',
       author='Dug Song',
       author_email='dugsong@monkey.org',
       url='http://monkey.org/~dugsong/pypcap/',
