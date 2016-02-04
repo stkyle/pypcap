@@ -43,15 +43,34 @@ class config_pcap(config.config):
             f.write('#define %s %s\n' % (k, v))
     
     def _pcap_config(self, dirs=[ None ]):
+        """Search for pcap build/installation directories"""
         cfg = {}
         if not dirs[0]:
-            dirs = [ '/usr', sys.prefix ] + glob.glob('/opt/libpcap*') + \
-                   glob.glob('../libpcap*') + glob.glob('../wpdpack*')
+            # Search for relevent local directories.  Add them to list
+            # if found.
+            dirs += ['/usr']
+            # Note: sys.prefix gives the site-specific directory prefix  
+            # where the platform independent Python files are installed 
+            # (https://docs.python.org/2/library/sys.html#sys.prefix )
+            dirs += [sys.prefix]
+            # libpcap (http://www.tcpdump.org/#latest-release)
+            dirs += glob.glob('/opt/libpcap*')
+            dirs += glob.glob('../libpcap*')
+            # WinPcap Developer's Pack (https://www.winpcap.org/devel.htm)
+            dirs += glob.glob('../wpdpack*')
+
         for d in dirs:
+            # Search Subdirectories for the pcap.h file
             for sd in ('include/pcap', 'include', ''):
                 incdirs = [ os.path.join(d, sd) ]
+                
+                # if pcap.h is discovered, add it to the config 
+                # dict under section `include_dirs'
                 if os.path.exists(os.path.join(d, sd, 'pcap.h')):
                     cfg['include_dirs'] = [ os.path.join(d, sd) ]
+                    
+                    # Search for subdirectories in the pcap.h parent 
+                    # folder, targetting libpcap/winpcap libraries
                     for sd in ('lib', 'lib64', ''):
                         for lib in (('pcap', 'libpcap.a'),
                                     ('pcap', 'libpcap.so'),
@@ -64,10 +83,11 @@ class config_pcap(config.config):
                                     cfg['libraries'].append('iphlpapi')
                                     cfg['extra_compile_args'] = \
                                         [ '-DWIN32', '-DWPCAP' ]
-                                print 'found', cfg
+                                print('found %s' % cfg)
                                 self._write_config_h(cfg)
                                 return cfg
-        raise Exception("couldn't find pcap build or installation directory")
+
+        raise IOError("setup is unable to find pcap build or installation directory")
     
     def run(self):
         #config.log.set_verbosity(0)
