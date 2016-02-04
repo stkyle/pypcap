@@ -2,7 +2,13 @@
 #
 # $Id$
 
-from distutils.core import setup, Extension
+try:
+    from setuptools import setup
+    from setuptools import Extension
+except ImportError:
+    from distutils.core import setup
+    from distutils.core import Extension
+
 from distutils.command import config, clean
 import cPickle, glob, os, sys
 
