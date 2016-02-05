@@ -2,18 +2,101 @@
 #
 # $Id$
 
-try:
-    from setuptools import setup
-    from setuptools import Extension
-except ImportError:
-    from distutils.core import setup
-    from distutils.core import Extension
-
+from setuptools import setup, Extension
 from distutils.command import config, clean
-import cPickle, glob, os, sys
+import cPickle, os, sys
+import logging
+import fnmatch
+import platform
+import sysconfig
+import ctypes.util
 
+#LIB_IPHLAPI = ctypes.util.find_library('iphlpapi')
+LIB_WPACP = r'C:\wpdpack\Lib\x64'
+LIB_PYTHON = r'C:\Anaconda3\envs\py2.7\libs'
+# [ 'C:\wpdpack\Lib\x64', 'C:\Anaconda3\envs\py2.7\libs']
+
+INC_WPCAP = r'C:\wpdpack\Include'
+INC_WPCAP2 = r'C:\Users\steve.kyle\Desktop\winpcap\wpcap\libpcap'
+INC_PYTHON = sysconfig.get_paths().get('include', None)
+INC_WINSDK = os.path.join(os.environ.get('HOME'), r'AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\WinSDK\Include')
+INC_MSVC = os.path.join(os.environ.get('HOME'), r'AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\VC\include')
+
+LIBRARIES = ['wpcap', 'iphlpapi']
+EXTRA_COMPILE_ARGS = [ '-DWIN32', '-DWPCAP' ]
+
+DEFINE_MACROS = []
+#DEFINE_MACROS += [('HAVE_PCAP_INT_H', 0)]
+DEFINE_MACROS += [('HAVE_PCAP_FILE', 1)]
+DEFINE_MACROS += [('HAVE_PCAP_COMPILE_NOPCAP', 1)]
+DEFINE_MACROS += [('HAVE_PCAP_SETNONBLOCK', 1)]
+DEFINE_MACROS += [('HAVE_PCAP_SETDIRECTION', 1)]
+
+
+sysconfig.get_config_vars()
+PLATFORM = sys.platform
+ARCH = 64 if sys.maxsize > 2**32 else 32
+MACHINE = platform.machine()
+PYCOMPILER = platform.python_compiler()
+INTERPRETER = platform.python_implementation()
+
+
+logging.basicConfig(level=logging.INFO)
 pcap_config = {}
 pcap_cache = 'config.pkl'
+
+
+INCLUDE_DIRS = [r'C:\wpdpack\Include', 'C:\wpdpack\Include\pcap','C:\Anaconda3\envs\py2.7\include']
+INCLUDE_DIRS += [r"C:\Users\steve.kyle\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\VC\include"]
+INCLUDE_DIRS += [r"C:\Users\steve.kyle\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\WinSDK\Include"]
+
+LIB_DIRS = [r'C:\Anaconda3\envs\py2.7\libs']
+LIB_DIRS += [r'C:\wpdpack\Lib\x64']
+LIB_DIRS += [r'C:\Users\steve.kyle\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\WinSDK\Lib\x64']
+LIB_DIRS += [r'C:\Users\steve.kyle\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\VC\lib\amd64']
+LIB_DIRS += [r'C:\pypcap', 'C:\pypcap\build']
+LIB_DIRS += [r'C:\Anaconda3\envs\py2.7\Library\bin']
+
+
+
+
+def getpcap_include_dirs():
+    include_dirs = []
+    for var in globals().keys():
+        if var.startswith('INC_'):
+            inc = globals()[var]
+            logging.info('INCLUDE: %s' % inc)
+            include_dirs += [inc]
+    print include_dirs
+    return include_dirs
+
+def getpcap_lib_dirs():
+    lib_dirs = []
+    for var in globals().keys():
+        if var.startswith('LIB_'):
+            lib = globals()[var]
+            logging.info('LIB: %s' % lib)
+            lib_dirs += [lib]
+    return lib_dirs
+
+
+def findfilematch(name, path, recurse=False):
+    """Search path or path list for file matching `name`"""
+    if isinstance(path, str):
+        path = [path]
+    for p in path:
+        
+        for root, dirs, files in os.walk(p, topdown=True):
+            if recurse is False: 
+                dirs[:] = []
+            
+            for f in fnmatch.filter(files, name):
+                return os.path.join(root, f)
+
+    return None
+
+
+
 
 class config_pcap(config.config):
     description = 'configure pcap paths'
@@ -21,6 +104,7 @@ class config_pcap(config.config):
                       'path to pcap build or installation directory') ]
     
     def initialize_options(self):
+        logging.info('Initializing Configuration Options...')
         config.config.initialize_options(self)
         self.dump_source = 0
         #self.noisy = 0
@@ -28,9 +112,17 @@ class config_pcap(config.config):
 
     def _write_config_h(self, cfg):
         # XXX - write out config.h for pcap_ex.c
+        logging.info('Writing configuration header files...')
         d = {}
-        if os.path.exists(os.path.join(cfg['include_dirs'][0], 'pcap-int.h')):
-            d['HAVE_PCAP_INT_H'] = 1
+        #if finfile('pcap-int.h', INCLUDE_DIRS) is not None:
+        d['HAVE_PCAP_INT_H'] = 1
+        
+        #if finfile('pcap.h', INCLUDE_DIRS) is not None:
+        d['HAVE_PCAP_FILE'] = 1
+        
+        #if os.path.exists(os.path.join(cfg['include_dirs'][0], 'pcap-int.h')):
+        #    d['HAVE_PCAP_INT_H'] = 1
+        print(findfilematch('pcap.h', INCLUDE_DIRS))
         buf = open(os.path.join(cfg['include_dirs'][0], 'pcap.h')).read()
         if buf.find('pcap_file(') != -1:
             d['HAVE_PCAP_FILE'] = 1
@@ -43,55 +135,26 @@ class config_pcap(config.config):
             f.write('#define %s %s\n' % (k, v))
     
     def _pcap_config(self, dirs=[ None ]):
-        """Search for pcap build/installation directories"""
+        logging.info('Writing configuration file...')
         cfg = {}
-        if not dirs[0]:
-            # Search for relevent local directories.  Add them to list
-            # if found.
-            dirs += ['/usr']
-            # Note: sys.prefix gives the site-specific directory prefix  
-            # where the platform independent Python files are installed 
-            # (https://docs.python.org/2/library/sys.html#sys.prefix )
-            dirs += [sys.prefix]
-            # libpcap (http://www.tcpdump.org/#latest-release)
-            dirs += glob.glob('/opt/libpcap*')
-            dirs += glob.glob('../libpcap*')
-            # WinPcap Developer's Pack (https://www.winpcap.org/devel.htm)
-            dirs += glob.glob('../wpdpack*')
+        cfg['include_dirs'] = ['C:\wpdpack\Include', 'C:\wpdpack\Include\pcap','C:\Anaconda3\envs\py2.7\include']
+        cfg['include_dirs'] += ["C:\Users\XXXXX\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\VC\include"]
+        cfg['include_dirs'] += ["C:\Users\XXXXXXXXXXX\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\WinSDK\Include"]
+        
+        cfg['include_dirs'] = getpcap_include_dirs()
 
-        for d in dirs:
-            # Search Subdirectories for the pcap.h file
-            for sd in ('include/pcap', 'include', ''):
-                incdirs = [ os.path.join(d, sd) ]
-                
-                # if pcap.h is discovered, add it to the config 
-                # dict under section `include_dirs'
-                if os.path.exists(os.path.join(d, sd, 'pcap.h')):
-                    cfg['include_dirs'] = [ os.path.join(d, sd) ]
-                    
-                    # Search for subdirectories in the pcap.h parent 
-                    # folder, targetting libpcap/winpcap libraries
-                    # libpcap.a - archive of compiled libpcap code
-                    # libpcap.so - shared object library
-                    # libpcap.dylib - libpcap dynamic library
-                    # wpcap.lib - WinPcap library
-                    for sd in ('lib', 'lib64', ''):
-                        for lib in (('pcap', 'libpcap.a'),
-                                    ('pcap', 'libpcap.so'),
-                                    ('pcap', 'libpcap.dylib'),
-                                    ('wpcap', 'wpcap.lib')):
-                            if os.path.exists(os.path.join(d, sd, lib[1])):
-                                cfg['library_dirs'] = [ os.path.join(d, sd) ]
-                                cfg['libraries'] = [ lib[0] ]
-                                if lib[0] == 'wpcap':
-                                    cfg['libraries'].append('iphlpapi')
-                                    cfg['extra_compile_args'] = \
-                                        [ '-DWIN32', '-DWPCAP' ]
-                                print('found %s' % cfg)
-                                self._write_config_h(cfg)
-                                return cfg
+        cfg['library_dirs'] = [ r'C:\wpdpack\Lib\x64', 'C:\Anaconda3\envs\py2.7\libs']
+        
+        cfg['library_dirs'] = getpcap_lib_dirs()
+        
+        
+        #cfg['libraries'] = [ 'wpcap', 'iphlpapi' ]
+        cfg['extra_compile_args'] = [ '-DWIN32', '-DWPCAP' ]
+        self._write_config_h(cfg)
+        return cfg
+								
 
-        raise IOError("setup is unable to find pcap build or installation directory")
+
     
     def run(self):
         #config.log.set_verbosity(0)
@@ -113,17 +176,19 @@ if len(sys.argv) > 1 and sys.argv[1] == 'build':
         print >>sys.stderr, 'run "%s config" first!' % sys.argv[0]
         sys.exit(1)
 
+
 pcap = Extension(name='pcap',
                  sources=[ 'pcap.c', 'pcap_ex.c' ],
-                 include_dirs=pcap_config.get('include_dirs', ''),
-                 library_dirs=pcap_config.get('library_dirs', ''),
-                 libraries=pcap_config.get('libraries', ''),
-                 extra_compile_args=pcap_config.get('extra_compile_args', ''))
+                 include_dirs=getpcap_include_dirs(),
+                 define_macros=DEFINE_MACROS,
+                 library_dirs=[LIB_WPACP, LIB_PYTHON],
+                 libraries= LIBRARIES,
+                 extra_compile_args=EXTRA_COMPILE_ARGS)
 
 pcap_cmds = { 'config':config_pcap, 'clean':clean_pcap }
 
 setup(name='pcap',
-      version='1.1s',
+      version='2',
       author='Dug Song',
       author_email='dugsong@monkey.org',
       url='http://monkey.org/~dugsong/pypcap/',
