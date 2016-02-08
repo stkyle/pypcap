@@ -1,7 +1,29 @@
 #!/usr/bin/env python
 
 import getopt, sys
-import dpkt, pcap
+try:
+    import dpkt
+except ImportError as exc:
+    import types
+    if exc.args[0] == 'No module named test' or 'pystone' in exc.args[0]:
+        msg =('The package `dpkt` has a dependency on the python standard '
+              'library `test` module. The test package is meant for internal ' 
+              'use by Python only, and is stripped from many third party '
+              'pre-packaged interpreters. '
+              '\Recomendation: Install the `test` package manually. '
+              'It may be downloaded here: '
+              'https://github.com/python/cpython/tree/master/Lib/test',)
+        exc.args += msg
+        print(exc)
+        # This is a hack to avoid the pystones dependancy
+        sys.modules['test'] = types.ModuleType('test')
+        sys.modules['test'].pystone = None
+        import dpkt
+        del sys.modules['test']
+    else:
+        raise exc
+
+import pcap
 
 def usage():
     print >>sys.stderr, 'usage: %s [-i device] [pattern]' % sys.argv[0]
