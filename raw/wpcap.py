@@ -1,6 +1,11 @@
 
 import ctypes
 
+# Constants
+PCAP_SRC_IF_STRING = "rpcap://"
+PCAP_SRC_FILE_STRING = "file://"
+
+# Functions
 bpf_dump = ctypes.windll.wpcap.bpf_dump
 bpf_filter = ctypes.windll.wpcap.bpf_filter
 bpf_image = ctypes.windll.wpcap.bpf_image
@@ -30,7 +35,7 @@ pcap_dump_open = ctypes.windll.wpcap.pcap_dump_open
 pcap_file = ctypes.windll.wpcap.pcap_file
 pcap_fileno = ctypes.windll.wpcap.pcap_fileno
 pcap_findalldevs = ctypes.windll.wpcap.pcap_findalldevs
-pcap_findalldevs_ex = ctypes.windll.wpcap.pcap_findalldevs_ex
+_pcap_findalldevs_ex = ctypes.windll.wpcap.pcap_findalldevs_ex
 pcap_free_datalinks = ctypes.windll.wpcap.pcap_free_datalinks
 pcap_freealldevs = ctypes.windll.wpcap.pcap_freealldevs
 pcap_freecode = ctypes.windll.wpcap.pcap_freecode
@@ -88,3 +93,38 @@ pcap_stats = ctypes.windll.wpcap.pcap_stats
 pcap_stats_ex = ctypes.windll.wpcap.pcap_stats_ex
 pcap_strerror = ctypes.windll.wpcap.pcap_strerror
 wsockinit = ctypes.windll.wpcap.wsockinit
+
+
+
+
+def pcap_findalldevs_ex(source, auth, alldevs, errbuf):
+    """Retrieve the device list from the local machine
+    
+    this function returns a linked list of pcap_if structures, each of 
+    which contains comprehensive information about an attached adapter. 
+    In particular, the fields name and description contain the name and 
+    a human readable description, respectively, of the corresponding 
+    device.
+    
+    Args:
+        source (ctypes.c_char_p): buffer that keeps the 'source localtion', 
+            according to the new WinPcap syntax. This source will be 
+            examined looking for adapters (local or remote)
+        auth (struct pcap_rmtauth *):a pointer to a pcap_rmtauth 
+            structure. This pointer keeps the information required to 
+            authenticate the RPCAP connection to the remote host. This 
+            parameter is not meaningful in case of a query to the local 
+            host: in that case it can be NULL.
+        alldevs (pcap_if_t **): a 'struct pcap_if_t' pointer, which will 
+            be properly allocated inside this function. When the function 
+            returns, it is set to point to the first element of the 
+            interface list; each element of the list is of type 
+            `struct pcap_if_t`.
+        errbuf (ctypes.c_char_p): a pointer to a user-allocated buffer (of size 
+            PCAP_ERRBUF_SIZE) that will contain the error message.
+
+    Returns:
+        int: 0 successful, otherwise unsuccessful.
+    """
+    return _pcap_findalldevs_ex(source, auth, alldevs, errbuf)
+
