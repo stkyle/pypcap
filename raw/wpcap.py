@@ -94,8 +94,44 @@ pcap_stats_ex = ctypes.windll.wpcap.pcap_stats_ex
 pcap_strerror = ctypes.windll.wpcap.pcap_strerror
 wsockinit = ctypes.windll.wpcap.wsockinit
 
+# Classes
+class  pcap_handler(ctypes.Structure):
+    """callback function that receives the packets."""
+    pass
 
 
+class sockaddr(ctypes.Structure):
+    """socket address"""
+    _fields_ = [("sa_family", ctypes.c_short),
+                ("__pad1", ctypes.c_ushort),
+                ("ipv4_addr", ctypes.c_byte * 4),
+                ("ipv6_addr", ctypes.c_byte * 16),
+                ("__pad2", ctypes.c_ulong)]
+
+
+class pcap_dumper(ctypes.Structure):
+    """libpcap savefile descriptor."""
+
+
+class pcap_addr(ctypes.Structure):
+    """Representation of an interface address"""
+pcap_addr._fields_ = [('next', POINTER(pcap_addr)),
+                      ('addr', POINTER(sockaddr)),
+                      ('netmask', POINTER(sockaddr)),
+                      ('broadaddr', POINTER(sockaddr)),
+                      ('dstaddr', POINTER(sockaddr))]
+
+class pcap(ctypes.Structure):
+    pass
+
+class pcap_if(ctypes.Structure): pass
+pcap_if._fields_ = [('next', POINTER(pcap_if)),
+                    ('name', ctypes.c_char_p),
+                    ('description', ctypes.c_char_p ),
+                    ('addresses',POINTER(pcap_addr) ),
+                    ('flags', ctypes.c_uint )]
+
+# Adds Doc Strings
 
 def pcap_findalldevs_ex(source, auth, alldevs, errbuf):
     """Retrieve the device list from the local machine
