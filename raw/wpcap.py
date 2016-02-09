@@ -131,6 +131,11 @@ pcap_if._fields_ = [('next', POINTER(pcap_if)),
                     ('addresses',POINTER(pcap_addr) ),
                     ('flags', ctypes.c_uint )]
 
+# Add Response Types
+pcap_lookupdev.restype = ctypes.c_char_p
+pcap_findalldevs_ex.restype = ctypes.c_int
+
+
 # Adds Doc Strings
 
 def pcap_findalldevs_ex(source, auth, alldevs, errbuf):
