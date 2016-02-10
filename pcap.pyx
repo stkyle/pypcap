@@ -91,7 +91,9 @@ cdef extern from "pcap_ex.h":
                                    int optimize, unsigned int netmask)
 
 cdef extern from *:
+    # returns a pointer to a new string which is a duplicate of the string `src`
     char *strdup(char *src)
+    # deallocates the memory previously allocated by a call to calloc, malloc, or realloc
     void  free(void *ptr)
     
 cdef struct pcap_handler_ctx:
@@ -112,7 +114,19 @@ cdef void __pcap_handler(void *arg, pcap_pkthdr *hdr, char *pkt):
         ctx.got_exc = 1
     PyGILState_Release(gil)
 
+
+# DLT_NULL BSD loopback encapsulation; the link layer header is a 4-byte field, 
+# in host byte order, containing a PF_ value from socket.h for the network-layer 
+# protocol of the packet. Note that ``host byte order'' is the byte order of the 
+# machine on which the packets are captured, and the PF_ values are for the OS 
+# of the machine on which the packets are captured; if a live capture is being 
+# done, ``host byte order'' is the byte order of the machine capturing the packets, 
+# and the PF_ values are those of the OS of the machine capturing the packets, but 
+# if a ``savefile'' is being read, the byte order and PF_ values are not 
+# necessarily those of the machine reading the capture file.
 DLT_NULL =	0
+
+
 DLT_EN10MB =	1
 DLT_EN3MB =	2
 DLT_AX25 =	3
@@ -128,6 +142,7 @@ DLT_LINUX_SLL =	113
 # XXX - OpenBSD
 DLT_PFLOG =	117
 DLT_PFSYNC =	18
+
 if sys.platform.find('openbsd') != -1:
     DLT_LOOP =		12
     DLT_RAW =		14
