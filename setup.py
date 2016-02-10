@@ -128,22 +128,10 @@ class config_pcap(config.config):
         # XXX - write out config.h for pcap_ex.c
         logging.info('Writing configuration header files...')
         d = {}
-        #if finfile('pcap-int.h', INCLUDE_DIRS) is not None:
         d['HAVE_PCAP_INT_H'] = 1
-        
-        #if finfile('pcap.h', INCLUDE_DIRS) is not None:
         d['HAVE_PCAP_FILE'] = 1
-        
-        #if os.path.exists(os.path.join(cfg['include_dirs'][0], 'pcap-int.h')):
-        #    d['HAVE_PCAP_INT_H'] = 1
-        print(findfilematch('pcap.h', INCLUDE_DIRS))
-        buf = open(os.path.join(cfg['include_dirs'][0], 'pcap.h')).read()
-        if buf.find('pcap_file(') != -1:
-            d['HAVE_PCAP_FILE'] = 1
-        if buf.find('pcap_compile_nopcap(') != -1:
-            d['HAVE_PCAP_COMPILE_NOPCAP'] = 1
-        if buf.find('pcap_setnonblock(') != -1:
-            d['HAVE_PCAP_SETNONBLOCK'] = 1
+        d['HAVE_PCAP_COMPILE_NOPCAP'] = 1
+        d['HAVE_PCAP_SETNONBLOCK'] = 1
         f = open('config.h', 'w')
         for k, v in d.iteritems():
             f.write('#define %s %s\n' % (k, v))
