@@ -30,7 +30,7 @@ LIB_WPACP = r'C:\wpdpack\Lib\x64'
 LIB_PYTHON = r'C:\Anaconda3\envs\py2.7\libs'
 
 LIBRARIES = ['wpcap', 'iphlpapi']
-EXTRA_COMPILE_ARGS = [ '-DWIN32', '-DWPCAP' ]
+EXTRA_COMPILE_ARGS = [ '-DWIN32', '-DWPCAP' ,'-D_CRT_SECURE_NO_WARNINGS']
 
 DEFINE_MACROS = []
 #DEFINE_MACROS += [('HAVE_PCAP_INT_H', 0)]
