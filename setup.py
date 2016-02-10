@@ -14,7 +14,7 @@ from Cython.Build import cythonize
 REQUIRES = ['dpkt', 'Cython', 'setuptools']
 SOURCE_FILES = ['pcap.pyx', 'pcap_ex.c']
 WIN_SDK_PATH = os.environ.get('WindowsSdkDir', None)
-VCINSTALLDIR = os.environ.get('VCINSTALLDIR') or None
+VCINSTALLDIR = os.environ.get('VCINSTALLDIR', None)
 
 
 # Header Files
@@ -28,13 +28,6 @@ INCLUDE_PATHS = [INC_WPCAP, INC_PYTHON, INC_WINSDK, INC_MSVC]
 # Libraries
 LIB_WPACP = r'C:\wpdpack\Lib\x64'
 LIB_PYTHON = r'C:\Anaconda3\envs\py2.7\libs'
-
-#LIB_IPHLAPI = ctypes.util.find_library('iphlpapi')
-
-
-# [ 'C:\wpdpack\Lib\x64', 'C:\Anaconda3\envs\py2.7\libs']
-
-
 
 LIBRARIES = ['wpcap', 'iphlpapi']
 EXTRA_COMPILE_ARGS = [ '-DWIN32', '-DWPCAP' ]
@@ -155,9 +148,6 @@ class config_pcap(config.config):
         self._write_config_h(cfg)
         return cfg
 								
-
-
-    
     def run(self):
         #config.log.set_verbosity(0)
         cPickle.dump(self._pcap_config([ self.with_pcap ]),
