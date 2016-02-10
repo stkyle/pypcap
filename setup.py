@@ -53,19 +53,6 @@ pcap_config = {}
 pcap_cache = 'config.pkl'
 
 
-INCLUDE_DIRS = [r'C:\wpdpack\Include', 'C:\wpdpack\Include\pcap','C:\Anaconda3\envs\py2.7\include']
-INCLUDE_DIRS += [r"C:\Users\steve.kyle\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\VC\include"]
-INCLUDE_DIRS += [r"C:\Users\steve.kyle\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\WinSDK\Include"]
-
-LIB_DIRS = [r'C:\Anaconda3\envs\py2.7\libs']
-LIB_DIRS += [r'C:\wpdpack\Lib\x64']
-LIB_DIRS += [r'C:\Users\steve.kyle\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\WinSDK\Lib\x64']
-LIB_DIRS += [r'C:\Users\steve.kyle\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\VC\lib\amd64']
-LIB_DIRS += [r'C:\pypcap', 'C:\pypcap\build']
-LIB_DIRS += [r'C:\Anaconda3\envs\py2.7\Library\bin']
-
-
-
 
 def getpcap_include_dirs():
     include_dirs = []
@@ -162,7 +149,7 @@ class clean_pcap(clean.clean):
             os.unlink(pcap_cache)
 
 
-pcap = Extension(name='pcap',
+pcap = Extension(name='winpcap',
                  sources=SOURCE_FILES,
                  include_dirs=[d for d in INCLUDE_PATHS if d is not None],
                  define_macros=DEFINE_MACROS,
