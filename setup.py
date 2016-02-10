@@ -9,18 +9,32 @@ import logging
 import fnmatch
 import platform
 import sysconfig
-import ctypes.util
 
-#LIB_IPHLAPI = ctypes.util.find_library('iphlpapi')
+
+REQUIRES = ['dpkt', 'Cython', 'setuptools']
+SOURCE_FILES = ['pcap.pyx', 'pcap_ex.c']
+WIN_SDK_PATH = os.environ.get('WindowsSdkDir', None)
+VCINSTALLDIR = os.environ.get('VCINSTALLDIR') or None
+
+
+# Header Files
+INC_WPCAP = r'C:\wpdpack\Include'
+INC_PYTHON = sysconfig.get_paths().get('include', None)
+INC_WINSDK = os.path.join(WIN_SDK_PATH,'Include') if WIN_SDK_PATH else None
+INC_MSVC = os.path.join(VCINSTALLDIR, r'include') if VCINSTALLDIR or None
+
+INCLUDE_PATHS = [INC_WPCAP, INC_PYTHON, INC_WINSDK, INC_MSVC]
+
+# Libraries
 LIB_WPACP = r'C:\wpdpack\Lib\x64'
 LIB_PYTHON = r'C:\Anaconda3\envs\py2.7\libs'
+
+#LIB_IPHLAPI = ctypes.util.find_library('iphlpapi')
+
+
 # [ 'C:\wpdpack\Lib\x64', 'C:\Anaconda3\envs\py2.7\libs']
 
-INC_WPCAP = r'C:\wpdpack\Include'
-INC_WPCAP2 = r'C:\Users\steve.kyle\Desktop\winpcap\wpcap\libpcap'
-INC_PYTHON = sysconfig.get_paths().get('include', None)
-INC_WINSDK = os.path.join(os.environ.get('HOME'), r'AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\WinSDK\Include')
-INC_MSVC = os.path.join(os.environ.get('HOME'), r'AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\VC\include')
+
 
 LIBRARIES = ['wpcap', 'iphlpapi']
 EXTRA_COMPILE_ARGS = [ '-DWIN32', '-DWPCAP' ]
@@ -178,8 +192,8 @@ if len(sys.argv) > 1 and sys.argv[1] == 'build':
 
 
 pcap = Extension(name='pcap',
-                 sources=[ 'pcap.c', 'pcap_ex.c' ],
-                 include_dirs=getpcap_include_dirs(),
+                 sources=SOURCE_FILES,
+                 include_dirs=[d for d in INCLUDE_PATHS if d is not None],
                  define_macros=DEFINE_MACROS,
                  library_dirs=[LIB_WPACP, LIB_PYTHON],
                  libraries= LIBRARIES,
@@ -194,5 +208,5 @@ setup(name='pcap',
       url='http://monkey.org/~dugsong/pypcap/',
       description='packet capture library',
       cmdclass=pcap_cmds,
-      ext_modules = [ pcap ])
+      ext_modules = cythonize([pcap]))
 
