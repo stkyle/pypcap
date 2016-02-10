@@ -183,13 +183,6 @@ class clean_pcap(clean.clean):
             print "removing '%s'" % pcap_cache
             os.unlink(pcap_cache)
 
-if len(sys.argv) > 1 and sys.argv[1] == 'build':
-    try:
-        pcap_config = cPickle.load(open(pcap_cache))
-    except IOError:
-        print >>sys.stderr, 'run "%s config" first!' % sys.argv[0]
-        sys.exit(1)
-
 
 pcap = Extension(name='pcap',
                  sources=SOURCE_FILES,
