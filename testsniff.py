@@ -4,6 +4,8 @@ import getopt, sys
 try:
     import dpkt
 except ImportError as exc:
+    import types
+
     if exc.args[0] == 'No module named test' or 'pystone' in exc.args[0]:
         msg =('The package `dpkt` has a dependency on the python standard '
               'library `test` module. The test package is meant for internal ' 
@@ -22,6 +24,9 @@ except ImportError as exc:
         del sys.modules['test']
     else:
         raise exc
+
+
+
 import pcap
 
 def usage():
