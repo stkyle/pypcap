@@ -15,6 +15,7 @@ except ImportError as exc:
         exc.args += msg
         print(exc)
         # This is a hack to avoid the pystones dependancy
+        import types
         sys.modules['test'] = types.ModuleType('test')
         sys.modules['test'].pystone = None
         import dpkt
