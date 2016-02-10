@@ -21,7 +21,7 @@ VCINSTALLDIR = os.environ.get('VCINSTALLDIR') or None
 INC_WPCAP = r'C:\wpdpack\Include'
 INC_PYTHON = sysconfig.get_paths().get('include', None)
 INC_WINSDK = os.path.join(WIN_SDK_PATH,'Include') if WIN_SDK_PATH else None
-INC_MSVC = os.path.join(VCINSTALLDIR, r'include') if VCINSTALLDIR or None
+INC_MSVC = os.path.join(VCINSTALLDIR, r'include') if VCINSTALLDIR else None
 
 INCLUDE_PATHS = [INC_WPCAP, INC_PYTHON, INC_WINSDK, INC_MSVC]
 
