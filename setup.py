@@ -172,11 +172,11 @@ pcap = Extension(name='pcap',
 
 pcap_cmds = { 'config':config_pcap, 'clean':clean_pcap }
 
-setup(name='pcap',
+setup(name='winpcap',
       version='2',
-      author='Dug Song',
-      author_email='dugsong@monkey.org',
-      url='http://monkey.org/~dugsong/pypcap/',
+      author='Steve Kyle',
+      author_email='stkyle@github',
+      url='https://github.com/stkyle/winpcap',
       description='packet capture library',
       cmdclass=pcap_cmds,
       ext_modules = cythonize([pcap]))
