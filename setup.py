@@ -9,7 +9,7 @@ import logging
 import fnmatch
 import platform
 import sysconfig
-
+from Cython.Build import cythonize
 
 REQUIRES = ['dpkt', 'Cython', 'setuptools']
 SOURCE_FILES = ['pcap.pyx', 'pcap_ex.c']
