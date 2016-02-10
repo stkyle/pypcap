@@ -5,6 +5,7 @@ try:
     import dpkt
 except ImportError as exc:
     import types
+
     if exc.args[0] == 'No module named test' or 'pystone' in exc.args[0]:
         msg =('The package `dpkt` has a dependency on the python standard '
               'library `test` module. The test package is meant for internal ' 
@@ -16,12 +17,15 @@ except ImportError as exc:
         exc.args += msg
         print(exc)
         # This is a hack to avoid the pystones dependancy
+        import types
         sys.modules['test'] = types.ModuleType('test')
         sys.modules['test'].pystone = None
         import dpkt
         del sys.modules['test']
     else:
         raise exc
+
+
 
 import pcap
 

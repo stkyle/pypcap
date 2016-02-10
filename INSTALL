@@ -52,10 +52,9 @@ Use the following commands to build and install pypcap:
     $ sudo make install
 
 
-Building under Windows
-----------------------
+Building under Windows (with the MinGW compiler)
+------------------------------------------------
 
-The easiest way to build the module under Windows is with the MinGW compiler.
 To build, install the following:
 
     - Pyrex from http://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/
@@ -91,3 +90,16 @@ Afterwards, fire up the command line, navigate to the sources dir, and type:
     C:\pypcap> mingw32-make install
 
 Pypcap should get installed to c:\Python26\lib\site-packages\pcap.pyd.
+
+
+Building under Windows (with the MSVC compiler for Python 2.7)
+------------------------------------------------
+
+To build, install the following:
+
+    - Microsoft Visual C++ Compiler for Python 2.7 from https://www.microsoft.com/en-us/download/details.aspx?id=44266
+    - Windows Packet Capture Library from http://www.winpcap.org/install/default.htm
+    - WinPcap Developer's Pack from https://www.winpcap.org/devel.htm
+
+
+
